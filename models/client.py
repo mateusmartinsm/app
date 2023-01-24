@@ -67,9 +67,10 @@ class Client:
 
     def delete(self, id: int) -> None:
         db.cur.execute('DELETE FROM clientes WHERE id = ?', (id,))
+        db.con.commit()
 
     def read_all(self):
         client_data = db.cur.execute('''SELECT
-            nome_fantasia, nome, bairro, telefone FROM clientes
+            id, nome_fantasia, nome, bairro, telefone FROM clientes
         ''').fetchall()
         return client_data

@@ -44,10 +44,10 @@ class Ticket:
     def delete(self, id_boleto: int) -> None:
         db.cur.execute('DELETE FROM boletos WHERE id_boleto = ?', (id_boleto,))
 
-    def read_all(self):
+    def read_all(self) -> list:
         query = db.cur.execute('''
             SELECT nome_fantasia, nome, cnpj FROM clientes
             UNION
             SELECT data_de_vencimento, valor, numero FROM boletos
         ''').fetchall()
-        return list(query[0]) + list(query[1])
+        return list(query[1]) + list(query[0])

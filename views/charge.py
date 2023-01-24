@@ -2,9 +2,12 @@ from .widgets.menu import Menu
 from datetime import date
 import PySimpleGUI as sg
 
+
 class Charge(Menu):
-    def __init__(self):
-        self.form = [
+    def __init__(self, tickets):
+        self._tickets = tickets
+    def _form(self):
+        form = [
             [sg.Menu(self.menu_bar)],
             [sg.Column([
                 [sg.Text('Cliente')],
@@ -27,11 +30,44 @@ class Charge(Menu):
             ])]
         ]
 
-    def report(self, tickets):
+        table = [
+            sg.Table(
+                [['28/02/2023', 2000, '948234189014']],
+                [
+                    'Vencimento',
+                    'valor',
+                    'N. Boleto'
+                ],
+                auto_size_columns=False,
+                def_col_width=15,
+                justification='center',
+                row_height=25,
+                header_background_color='lightblue',
+                row_colors=[(0, 'white'), (1, 'lightgrey')],
+                expand_x=True
+            )
+        ]
+
+        button_size = 15
+        interface = [
+            sg.Button('Excluir', key='-EXCLUIR_BOLETO-', size=button_size),
+            sg.Push(),
+            sg.Button('Editar', key='-EDITAR_BOLETO-', size=button_size),
+            sg.Push(),
+            sg.Button('Adicionar', key='-ADICIONAR_BOLETO-', size=button_size)
+        ]
+
         return [
             [sg.Menu(self.menu_bar)],
+            form,
+            interface,
+            table
+        ]
+
+    def _report(self):
+        table = [
             [sg.Table(
-                [tickets],
+                [self._tickets],
                 [
                     'Nome Fantasia',
                     'Nome',
@@ -41,10 +77,29 @@ class Charge(Menu):
                     'N. Boleto'
                 ],
                 auto_size_columns=False,
-                def_col_width=20,
+                def_col_width=15,
                 justification='center',
                 row_height=25,
                 header_background_color='lightblue',
                 row_colors=[(0, 'white'), (1, 'lightgrey')]
             )]
         ]
+
+        button_size = 15
+        interface = [
+            [sg.Button('Adicionar', key='-ADICIONAR_BOLETO-', size=button_size)],
+            [sg.Button('Editar', key='-EDITAR_BOLETO-', size=button_size)],
+            [sg.Button('Excluir', key='-EXCLUIR_BOLETO-', size=button_size)],
+        ]
+
+        return [
+            [sg.Menu(self.menu_bar)],
+            [sg.Column(table), sg.vtop(sg.Column(interface))]
+        ]
+
+    @property
+    def get_form(self):
+        return self._form
+    @property
+    def get_report(self):
+        return self._report
