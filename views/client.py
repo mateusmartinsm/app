@@ -5,10 +5,7 @@ import PySimpleGUI as sg
 
 class Client(Menu):
     '''Layouts de todas as janelas relacionadas ao cliente'''
-    def __init__(self, clients):
-        self.clients = clients
-
-    def _form(self):
+    def form(self):
         title_color = 'green'
         left_column = [
             [sg.Text('Geral', text_color=title_color)],
@@ -79,7 +76,7 @@ class Client(Menu):
             ]
         ]
 
-    def _report(self):
+    def report(self):
         column_visibility = [False] + [True] * 5
         self.clients = [list(i) for i in self.clients.copy()]
         for c in self.clients:
@@ -91,7 +88,7 @@ class Client(Menu):
                     'id',
                     'Nome Fantasia',
                     'Nome',
-                    'Endereço',
+                    'Bairro',
                     'Telefone',
                     'Pagamentos'
                 ],
@@ -119,11 +116,3 @@ class Client(Menu):
             [sg.Menu(self.menu_bar)],
             [sg.Column(table), sg.vtop(sg.Column(interface))]
         ]
-
-    @property
-    def get_form(self):
-        return self._form
-
-    @property
-    def get_report(self):
-        return self._report

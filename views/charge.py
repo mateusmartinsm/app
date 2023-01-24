@@ -4,9 +4,7 @@ import PySimpleGUI as sg
 
 
 class Charge(Menu):
-    def __init__(self, tickets):
-        self._tickets = tickets
-    def _form(self):
+    def form(self):
         form = [
             [sg.Menu(self.menu_bar)],
             [sg.Column([
@@ -64,10 +62,10 @@ class Charge(Menu):
             table
         ]
 
-    def _report(self):
+    def report(self):
         table = [
             [sg.Table(
-                [self._tickets],
+                [self.tickets],
                 [
                     'Nome Fantasia',
                     'Nome',
@@ -87,7 +85,9 @@ class Charge(Menu):
 
         button_size = 15
         interface = [
-            [sg.Button('Adicionar', key='-ADICIONAR_BOLETO-', size=button_size)],
+            [sg.Button(
+                'Adicionar', key='-ADICIONAR_BOLETO-', size=button_size
+            )],
             [sg.Button('Editar', key='-EDITAR_BOLETO-', size=button_size)],
             [sg.Button('Excluir', key='-EXCLUIR_BOLETO-', size=button_size)],
         ]
@@ -96,10 +96,3 @@ class Charge(Menu):
             [sg.Menu(self.menu_bar)],
             [sg.Column(table), sg.vtop(sg.Column(interface))]
         ]
-
-    @property
-    def get_form(self):
-        return self._form
-    @property
-    def get_report(self):
-        return self._report

@@ -15,7 +15,7 @@ class Dashboard(Menu):
         fg.get_tk_widget().pack(side='top', fill='both', expand=1)
         return fg
 
-    def _design(self):
+    def layout(self) -> list:
         return [
             [sg.Menu(self.menu_bar)],
             [
@@ -36,13 +36,5 @@ class Dashboard(Menu):
                 ], element_justification='center'),
                 sg.Push()
             ],
-            [
-                # [sg.Push()],
-                [sg.Canvas(size=(500, 300), key='-CANVAS-')],
-                # [sg.Push()]
-            ]
+            [sg.Canvas(size=(500, 300), key='-CANVAS-')]
         ]
-
-    @property
-    def get_design(self):
-        return self._design()
