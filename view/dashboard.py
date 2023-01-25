@@ -5,17 +5,19 @@ import PySimpleGUI as sg
 
 
 class Dashboard(Menu):
-    def create_plot(self):
+    @staticmethod
+    def create_plot():
         plt.plot([10, 20, 30], ['vencidos', 'abertos', 'faturados'])
         return plt.gcf()
 
-    def draw_figure(self, canvas, figure):
+    @staticmethod
+    def draw_figure(canvas, figure):
         fg = FigureCanvasTkAgg(figure, canvas)
         fg.draw()
         fg.get_tk_widget().pack(side='top', fill='both', expand=1)
         return fg
 
-    def layout(self) -> list:
+    def layout(self) -> list[list[sg.Element]]:
         return [
             [sg.Menu(self.menu_bar)],
             [

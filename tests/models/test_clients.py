@@ -103,7 +103,7 @@ class TesteCrudClient(unittest.TestCase):
         self.assertEqual(client_data, [])
 
     # def test_read_all(self):
-    #     self.assertEqual(self.client.read_all(), ({
+    #     self.assertEqual(self.report.read_all(), ({
     #         'id': 1,
     #         'tipo_de_cadastro': 'Pessoa Física',
     #         'cnpj': None,

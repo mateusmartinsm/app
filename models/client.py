@@ -76,7 +76,7 @@ class Client:
         db.con.commit()
 
     @staticmethod
-    def read_all():
+    def read_all() -> list[tuple[str | int]]:
         client_data = db.cur.execute('''SELECT
             id, nome_fantasia, nome, bairro, telefone FROM clientes
         ''').fetchall()

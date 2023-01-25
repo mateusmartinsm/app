@@ -1,11 +1,19 @@
-from .widgets.menu import Menu
+from view.widgets import Menu
 from datetime import date
 import PySimpleGUI as sg
 
 
 class Client(Menu):
-    '''Layouts de todas as janelas relacionadas ao cliente'''
-    def form(self):
+    """Inicialização da interface do formulário de registro de clientes"""
+    def __init__(self):
+        self.window_title = 'Novo cliente'
+        self.abort_button_text = 'Limpar'
+        self.abort_button_key = '-LIMPAR-'
+        self.submit_button_text = 'Cadastrar'
+        self.submit_button_key = '-CADASTRAR-'
+
+    def layout(self) -> list[list[sg.Element]]:
+        """Constroi layout único NÃO REUTILIZÁVEL da interface"""
         title_color = 'green'
         left_column = [
             [sg.Text('Geral', text_color=title_color)],
@@ -62,7 +70,7 @@ class Client(Menu):
 
         return [
             [sg.Menu(self.menu_bar)],
-            [sg.Text('Novo Cliente')],
+            [sg.Text(self.window_title)],
             [sg.HorizontalSeparator()],
             [
                 sg.Column(left_column),
@@ -71,48 +79,7 @@ class Client(Menu):
             ],
             [
                 sg.Push(),
-                sg.Button('Limpar', key='-LIMPAR-'),
-                sg.Button('Cadastrar', key='-CADASTRAR-')
+                sg.Button(self.abort_button_text, key=self.abort_button_key),
+                sg.Button(self.submit_button_text, key=self.submit_button_key)
             ]
-        ]
-
-    def report(self):
-        column_visibility = [False] + [True] * 5
-        self.clients = [list(i) for i in self.clients.copy()]
-        for c in self.clients:
-            c.append('OK')
-        table = [
-            [sg.Table(
-                self.clients,
-                [
-                    'id',
-                    'Nome Fantasia',
-                    'Nome',
-                    'Bairro',
-                    'Telefone',
-                    'Pagamentos'
-                ],
-                column_visibility,
-                key='-TABELA_CLIENTES-',
-                auto_size_columns=False,
-                def_col_width=20,
-                justification='center',
-                row_height=25,
-                header_background_color='lightblue',
-                row_colors=[(0, 'white'), (1, 'lightgrey')]
-            )]
-        ]
-
-        button_size = 15
-        interface = [
-            [sg.Button(
-                'Adicionar', key='-ADICIONAR_CLIENTE-', size=button_size
-            )],
-            [sg.Button('Editar', key='-EDITAR_CLIENTE-', size=button_size)],
-            [sg.Button('Excluir', key='-EXCLUIR_CLIENTE-', size=button_size)],
-        ]
-
-        return [
-            [sg.Menu(self.menu_bar)],
-            [sg.Column(table), sg.vtop(sg.Column(interface))]
         ]

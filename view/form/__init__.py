@@ -1,2 +1,2 @@
 from .client import Client
-from .ticket import Ticket
+from .charge import Charge
