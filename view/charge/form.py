@@ -1,9 +1,9 @@
-from ..widgets.menu import Menu
+from view.widgets.menu import Menu
 from datetime import date
 import PySimpleGUI as sg
 
 
-class Charge(Menu):
+class Form(Menu):
     """Inicialização da interface do formulário de registro de cobranças"""
     def layout(self) -> list[list[sg.Element]]:
         """Constroi layout único NÃO REUTILIZÁVEL da interface"""
@@ -16,7 +16,7 @@ class Charge(Menu):
                 [sg.Push()],
                 [sg.Text('Data de vencimento')]
             ]), sg.Column([
-                [sg.DropDown(['Topam', 'PC', 'Rogério'])],
+                [sg.DropDown()],
                 [sg.Input('0')],
                 [
                     sg.Input(str(date.today().__format__('%d/%m/%Y'))),
@@ -58,6 +58,7 @@ class Charge(Menu):
 
         return [
             [sg.Menu(self.menu_bar)],
+            [sg.Text('Novo boleto', text_color='green')],
             form,
             interface,
             table

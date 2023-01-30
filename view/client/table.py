@@ -1,21 +1,22 @@
-from ..widgets import Menu
+from view.widgets import Menu
 import PySimpleGUI as sg
 
 
-class Client(Menu):
+class Table(Menu):
     """Inicialização da interface da tabela de registros dos clientes"""
-    def __init__(self):
-        self.clients = None
 
-    def layout(self) -> list[list[sg.Element]]:
+    def layout(self,
+               clients_register: list[tuple[any]]
+               ) -> list[list[sg.Element]]:
         """Constroi layout único NÃO REUTILIZÁVEL da interface"""
-        self.clients = [list(i) for i in self.clients.copy()]
+        clients_register = [list(i) for i in clients_register.copy()]
         column_visibility = [False] + [True] * 5
-        for c in self.clients:
+        colors = ['white', 'lightblue']
+        for c in clients_register:
             c.append('OK')
         table = [
             [sg.Table(
-                self.clients,
+                clients_register,
                 [
                     'id',
                     'Nome Fantasia',
@@ -31,7 +32,10 @@ class Client(Menu):
                 justification='center',
                 row_height=25,
                 header_background_color='lightblue',
-                row_colors=[(0, 'white'), (1, 'lightgrey')]
+                row_colors=[
+                    (i, 'white' if i % 2 == 0 else 'lightgray')
+                    for i in range(len(clients_register))
+                ]
             )]
         ]
 
@@ -39,6 +43,9 @@ class Client(Menu):
         interface = [
             [sg.Button(
                 'Adicionar', key='-ADICIONAR_CLIENTE-', size=button_size
+            )],
+            [sg.Button(
+                'Visualizar', key='-VISUALIZAR_CLIENTE-', size=button_size
             )],
             [sg.Button('Editar', key='-EDITAR_CLIENTE-', size=button_size)],
             [sg.Button('Excluir', key='-EXCLUIR_CLIENTE-', size=button_size)],

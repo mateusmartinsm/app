@@ -101,26 +101,3 @@ class TesteCrudClient(unittest.TestCase):
         ).fetchall()
 
         self.assertEqual(client_data, [])
-
-    # def test_read_all(self):
-    #     self.assertEqual(self.report.read_all(), ({
-    #         'id': 1,
-    #         'tipo_de_cadastro': 'Pessoa Física',
-    #         'cnpj': None,
-    #         'cpf': '122345678901',
-    #         'razao_social': None,
-    #         'nome_fantasia': None,
-    #         'nome': 'Raquel  Almeida',
-    #         'email': 'raquel@racoes.com',
-    #         'cep': '09876543',
-    #         'logradouro': 'Rua dos Cães',
-    #         'numero': '89',
-    #         'bairro': 'Ponte Grande',
-    #         'cidade': 'Ribeirão Preto',
-    #         'uf': 'SP',
-    #         'complemento': None,
-    #         'situacao': 'pago',
-    #         'categoria': 'case de ração',
-    #         'data_de_cadastro': self.current_date,
-    #         'informacoes_adicionais': None
-    #     }))

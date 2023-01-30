@@ -1,5 +1,6 @@
 class TableConstructorScripts:
-    def tickets(self):
+    @staticmethod
+    def tickets():
         return '''
             CREATE TABLE IF NOT EXISTS boletos(
                 id_cliente INTEGER NOT NULL,
@@ -13,7 +14,8 @@ class TableConstructorScripts:
             )
         '''
 
-    def clients(self):
+    @staticmethod
+    def clients():
         return '''
             CREATE TABLE IF NOT EXISTS clientes(
                 id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -6,27 +6,10 @@ import view
 sg.theme('DefaultNoMoreNagging')
 
 
-def init_window(self):
-    return sg.Window(
-        'Gestor de Cobranças',
-        self.layout,
-        element_padding=7,
-        finalize=True
-    )
-
-
-def clean_form(self):
-    for k in self.window.key_dict.keys():
-        if type(k) == str:
-            if 'INPUT' in k:
-                self.window[k].update('')
-            elif k[1] == '1':
-                self.window[k].update(True)
-
-
-def show_popup(keyword):
-    msg = 'ERRO: Nenhum registro selecionado.\n' \
-          f'Por favor, selecione o registro que deseja {keyword}\n'
+def show_popup(keyword: str = None, msg=None) -> None:
+    if msg is None:
+        msg = 'ERRO: Nenhum registro selecionado.\n' \
+              f'Por favor, selecione o registro que deseja {keyword}\n'
     sg.Popup(
         msg,
         title='Mensagem de erro',
@@ -39,136 +22,176 @@ def show_popup(keyword):
 
 class MainFrame:
     def __init__(self):
+        self.client_id = None
         self.client_model = models.Client()
-        self.client_form = view.form.Client()
-        self.client_report = view.report.Client()
-        self.client_report.clients = self.client_model.read_all()
+        self.client_form = view.client.Form()
+        self.client_table = view.client.Table()
 
         self.charge_model = models.Ticket()
-        self.charge_form = view.form.Charge()
-        self.charge_report = view.report.Charge()
-        self.charge_report.tickets = self.charge_model.read_all()
+        self.charge_form = view.charge.Form()
+        self.charge_table = view.charge.Table()
+        self.charge_table.tickets = self.charge_model.read_all()
 
         self.dashboard = view.Dashboard()
-        self.layout = self.dashboard.layout()
 
         self.window = sg.Window(
             'Gestor de Cobranças',
             element_padding=7,
-            layout=self.layout,
-            finalize=True
+            layout=self.dashboard.layout(),
+            finalize=True,
         )
-
-        self.event = None
-        self.values = None
 
         self.dashboard.draw_figure(
             self.window['-CANVAS-'].TKCanvas,
             self.dashboard.create_plot()
         )
 
-    # def open_page(self):
-    #
+        self.values = {}
+
+    @staticmethod
+    def _init_window(layout: list[list[sg.Element]]) -> sg.Window:
+        return sg.Window('Gestor de Cobranças',
+                         layout,
+                         element_padding=7,
+                         finalize=True)
+
+    def _alter_form_state(self, state) -> None:
+        if state == 'enable':
+            self.window['-TITULO-'].update('Editar rergistro do cliente')
+            self.window['Todos os clientes'].update(text='Cancelar')
+            self.window['-HABILITAR_EDICAO-'].update(visible=False)
+            self.window['-SALVAR_CLIENTE-'].update(visible=True)
+        for k in self.window.key_dict.keys():
+            if type(k) == str:
+                if 'INPUT' in k:
+                    match state:
+                        case 'clean': self.window[k].update('')
+                        case 'enable': self.window[k].update(disabled=False)
+                elif state == 'clean' and k[1] == '1':
+                    self.window[k].update(True)
+                elif state == 'enable' and k[1].isnumeric():
+                    self.window[k].update(disabled=False)
+
+    def _open_client_data_form(self, mode: str) -> None:
+        try:
+            key = '-TABELA_CLIENTES-'
+            self.client_id = int(
+                self.window[key].get()[self.values[key][0]][0]
+            )
+
+            self.window.close()
+            self.window = self._init_window(self.client_form.layout(mode))
+            input_keys = ['FANTASIA', 'NOME', 'TELEFONE', 'BAIRRO']
+            input_fields = [
+                'nome_fantasia',
+                'nome',
+                'email',
+                'cidade'
+            ]
+            for i, field in enumerate(input_fields):
+                self.window[f'-INPUT_{input_keys[i]}-'].update(
+                    self.client_model.read(self.client_id)[field]
+                )
+        except IndexError:
+            show_popup(mode)
 
     def loop(self):
         while True:
-            self.event, self.values = self.window.read()
-            if self.event == sg.WIN_CLOSED:
+            event, self.values = self.window.read()
+            if event == sg.WIN_CLOSED:
                 break
-            if self.event in [
+            if event in [
                 'Dashboard',
                 'Novo cliente',
                 'Nova cobrança',
                 'Todos os clientes',
                 'Relatório cobranças',
-                '-ADICIONAR_CLIENTE-',
-                '-CANCELAR-'
             ]:
-                match self.event:
+                match event:
                     case 'Dashboard':
-                        self.layout = self.dashboard.layout()
-                    case 'Novo cliente' | '-ADICIONAR_CLIENTE-':
-                        self.layout = self.client_form.layout()
+                        layout = self.dashboard.layout()
+                    case 'Novo cliente':
+                        layout = self.client_form.layout()
                     case 'Nova cobrança':
-                        self.layout = self.charge_form.layout()
-                    case 'Todos os clientes' | '-CANCELAR-':
-                        self.client_report.clients = \
+                        try:
+                            layout = self.charge_form.layout()
+                        except TypeError:
+                            show_popup(msg='ERRO: Nenhum cliente cadastrado\n'
+                                           'Cadastre o cliente antes de '
+                                           'registrar o boleto.\n')
+                            continue
+                    case 'Todos os clientes':
+                        layout = self.client_table.layout(
                             self.client_model.read_all()
-                        self.layout = self.client_report.layout()
+                        )
+                        self.client_table.layout(self.client_model.read_all())
                     case 'Relatório cobranças':
-                        self.charge_report.tickets = self.charge_model.read_all()
-                        self.layout = self.charge_report.layout()
+                        self.charge_table.tickets = \
+                            self.charge_model.read_all()
+                        layout = self.charge_table.layout()
                     case _:
                         raise NameError('layout não definido')
                 self.window.close()
-                self.window = init_window(self)
-                if self.event == 'Dashboard':
+                self.window = self._init_window(layout)
+                if event == 'Dashboard':
                     self.dashboard.draw_figure(
                         self.window['-CANVAS-'].TKCanvas,
                         self.dashboard.create_plot()
                     )
-            elif self.event == '-LIMPAR-':
-                clean_form(self)
-            elif self.event == '-CADASTRAR-':
+            elif event in ['-VISUALIZAR_CLIENTE-', '-EDITAR_CLIENTE-']:
+                mode = {
+                    '-VISUALIZAR_CLIENTE-': 'visualizar',
+                    '-EDITAR_CLIENTE-': 'editar'
+                }
+                self._open_client_data_form(mode[event])
+            elif event == '-LIMPAR-':
+                self._alter_form_state('clean')
+            elif event == '-CADASTRAR-':
                 if self.values['-1JURIDICA-']:
                     tipo_de_cliente = 'Pessoa Jurídica'
                 else:
                     tipo_de_cliente = 'Pessoa Física'
-                self.client_model.create(
-                    tipo_de_cliente,
-                    self.values['-INPUT_FANTASIA-'],
-                    self.values['-INPUT_NOME-'],
-                    self.values['-INPUT_BAIRRO-'],
-                    self.values['-INPUT_TELEFONE-']
-                )
-                self.client_report.clients = self.client_model.read_all()
-                sg.PopupOK(
-                    f'Cliente {self.values["-INPUT_NOME-"]} '
-                    'cadastrado com sucesso.'
-                )
-                clean_form(self)
-            elif self.event == '-EDITAR_CLIENTE-':
+                self.client_model.create(tipo_de_cliente,
+                                         self.values['-INPUT_FANTASIA-'],
+                                         self.values['-INPUT_NOME-'],
+                                         self.values['-INPUT_BAIRRO-'],
+                                         self.values['-INPUT_TELEFONE-'])
+                self.client_table.clients = self.client_model.read_all()
+                sg.PopupOK(f'Cliente {self.values["-INPUT_NOME-"]} '
+                           'cadastrado com sucesso.')
+                layout = self.client_table.layout(self.client_model.read_all())
+                self.window.close()
+                self.window = self._init_window(layout)
+            elif event == '-HABILITAR_EDICAO-':
+                self._alter_form_state('enable')
+            elif event == '-SALVAR_CLIENTE-':
+                self.client_model.update(self.client_id, **{
+                    'nome_fantasia': self.values['-INPUT_FANTASIA-'],
+                    'nome': self.values['-INPUT_NOME-'],
+                    'telefone': self.values['-INPUT_TELEFONE-'],
+                    'bairro': self.values['-INPUT_BAIRRO-']
+                })
+                sg.Popup('Registro atualizado com sucesso.\n\n')
+                self.window.close()
+                self.window = self._init_window(self.client_table.layout(
+                    self.client_model.read_all()
+                ))
+            elif event == '-EXCLUIR_CLIENTE-':
                 try:
                     key = '-TABELA_CLIENTES-'
-                    client_id = int(self.window[key].get()[self.values[key][0]][0])
-                    self.client_form.window_title = 'Editar registro do '\
-                                                    'cliente'
-                    self.client_form.abort_button_text = 'Cancelar'
-                    self.client_form.abort_button_key = '-CANCELAR-'
-                    self.client_form.submit_button_text = 'Salvar'
-                    self.client_form.submit_button_key = '-SALVAR-'
-                    self.layout = self.client_form.layout()
-                    self.window.close()
-                    self.window = init_window(self)
-                    input_keys = ['FANTASIA', 'NOME', 'TELEFONE', 'BAIRRO']
-                    input_fields = [
-                        'nome_fantasia',
-                        'nome',
-                        'email',
-                        'cidade'
-                    ]
-                    for i, field in enumerate(input_fields):
-                        self.window[f'-INPUT_{input_keys[i]}-'].update(
-                            self.client_model.read(client_id)[field]
-                        )
-                except IndexError:
-                    show_popup('editar')
-            elif self.event == '-EXCLUIR_CLIENTE-':
-                try:
-                    key = '-TABELA_CLIENTES-'
-                    client_id = int(
-                        self.window[key].get()[self.values[key][0]][0]
-                    )
-                    self.client_model.delete(client_id)
+                    self.client_id = \
+                        int(self.window[key].get()[self.values[key][0]][0])
+                    self.client_model.delete(self.client_id)
                     clients_register = self.client_model.read_all()
-                    clients_register = [
-                        list(i) for i in clients_register.copy()
-                    ]
+                    clients_register = \
+                        [list(i) for i in clients_register.copy()]
                     for register in clients_register:
                         register.append('OK')
                     self.window[key].update(values=clients_register)
                 except IndexError:
                     show_popup('deletar')
+            else:
+                raise f'evento {event} não encontrado\n\n'
 
 
 root = MainFrame()

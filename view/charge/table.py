@@ -1,8 +1,8 @@
-from ..widgets.menu import Menu
+from view.widgets.menu import Menu
 import PySimpleGUI as sg
 
 
-class Charge(Menu):
+class Table(Menu):
     """Inicialização da interface da tabela de registros de cobranças"""
     def __init__(self):
         self.tickets = None
@@ -20,6 +20,7 @@ class Charge(Menu):
                     'valor',
                     'N. Boleto'
                 ],
+                key='-TABELA_BOLETOS-',
                 auto_size_columns=False,
                 def_col_width=15,
                 justification='center',
