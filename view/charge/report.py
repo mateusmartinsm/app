@@ -2,7 +2,7 @@ from view.widgets.menu import Menu
 import PySimpleGUI as sg
 
 
-class Table(Menu):
+class Report(Menu):
     """Inicialização da interface da tabela de registros de cobranças"""
     def __init__(self):
         self.tickets = None

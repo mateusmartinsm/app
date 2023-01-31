@@ -1,2 +1,2 @@
 from .form import Form
-from .table import Table
+from .report import Report

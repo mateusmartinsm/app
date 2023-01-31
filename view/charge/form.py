@@ -5,7 +5,7 @@ import PySimpleGUI as sg
 
 class Form(Menu):
     """Inicialização da interface do formulário de registro de cobranças"""
-    def layout(self) -> list[list[sg.Element]]:
+    def layout(self, ticket_list: list = []) -> list[list[sg.Element]]:
         """Constroi layout único NÃO REUTILIZÁVEL da interface"""
         form = [
             [sg.Column([
@@ -16,8 +16,11 @@ class Form(Menu):
                 [sg.Push()],
                 [sg.Text('Data de vencimento')]
             ]), sg.Column([
-                [sg.DropDown()],
-                [sg.Input('0')],
+                [
+                    sg.Input(),
+                    sg.Button('Buscar', key='-CLIENT SEARCH PAGE-')
+                ],
+                [sg.Input('0', key='-VALOR-')],
                 [
                     sg.Input(str(date.today().__format__('%d/%m/%Y'))),
                     sg.CalendarButton('Calendário', format='%d/%m/%Y')
@@ -40,12 +43,13 @@ class Form(Menu):
 
         table = [
             sg.Table(
-                [['28/02/2023', 2000, '948234189014']],
+                ticket_list,
                 [
                     'Vencimento',
                     'valor',
                     'N. Boleto'
                 ],
+                key='-TABELA_BOLETOS-',
                 auto_size_columns=False,
                 def_col_width=15,
                 justification='center',

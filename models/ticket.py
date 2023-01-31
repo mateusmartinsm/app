@@ -1,9 +1,11 @@
 from connector import db
 from datetime import date, timedelta
 
+
 class Ticket:
-    '''API para operações na tabela cobrança do banco de dados'''
-    def create(self,
+    """API para operações na tabela cobrança do banco de dados"""
+    @staticmethod
+    def create(
         id_cliente: int,
         numero: str,
         valor: float,
@@ -19,21 +21,33 @@ class Ticket:
         )
         db.con.commit()
 
-    def read(self, id_boleto: int) -> dict:
-        colunas = [
+    @staticmethod
+    def read(
+        client_id: int,
+        return_type: type[list[dict] | list[list]]
+    ) -> list[dict] | list[list]:
+        columns = [
             'id_cliente', 'id_boleto', 'numero', 'valor', 'data_de_emissao',
             'data_de_vencimento', 'situacao'
         ]
-        data_tuple = db.cur.execute(
-            'SELECT * FROM boletos WHERE id_boleto = ?', (id_boleto,)
-        ).fetchall()[0]
+        client_registers = db.cur.execute(
+            'SELECT * FROM boletos WHERE id_cliente = ?', (client_id,)
+        ).fetchall()
+        if not client_registers:
+            return [['', 'Nenhum boleto cadastrado']]
+        data_dict = []
+        for i, register in enumerate(client_registers):
+            data_dict.append({})
+            for j, col in enumerate(columns):
+                data_dict[i][col] = register[j]
+        if return_type is type[list[dict]]:
+            return data_dict
+        return [[data_dict[i]['data_de_vencimento'],
+                 data_dict[i]['valor'],
+                 data_dict[i]['numero']] for i in range(len(data_dict))]
 
-        data_dict = {}
-        for i, col in enumerate(colunas):
-            data_dict[col] = data_tuple[i]
-        return data_dict
-
-    def update(self, id_boleto: int, **kwargs) -> None:
+    @staticmethod
+    def update(id_boleto: int, **kwargs) -> None:
         for kw in kwargs:
             db.cur.execute(
                 f'UPDATE boletos SET {kw} = ? WHERE id_boleto = ?',
@@ -41,10 +55,12 @@ class Ticket:
             )
         db.con.commit()
 
-    def delete(self, id_boleto: int) -> None:
+    @staticmethod
+    def delete(id_boleto: int) -> None:
         db.cur.execute('DELETE FROM boletos WHERE id_boleto = ?', (id_boleto,))
 
-    def read_all(self) -> list:
+    @staticmethod
+    def read_all() -> list:
         query = db.cur.execute('''
             SELECT nome_fantasia, nome, cnpj FROM clientes
             UNION

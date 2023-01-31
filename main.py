@@ -24,13 +24,15 @@ class MainFrame:
     def __init__(self):
         self.client_id = None
         self.client_model = models.Client()
+        self.client_table = view.widgets.ClientTable()
         self.client_form = view.client.Form()
-        self.client_table = view.client.Table()
+        self.client_report = view.client.Report()
+        self.client_search = view.client.Search()
 
         self.charge_model = models.Ticket()
         self.charge_form = view.charge.Form()
-        self.charge_table = view.charge.Table()
-        self.charge_table.tickets = self.charge_model.read_all()
+        self.charge_report = view.charge.Report()
+        self.charge_report.tickets = self.charge_model.read_all()
 
         self.dashboard = view.Dashboard()
 
@@ -74,11 +76,10 @@ class MainFrame:
 
     def _open_client_data_form(self, mode: str) -> None:
         try:
-            key = '-TABELA_CLIENTES-'
+            key = '-CLIENT TABLE-'
             self.client_id = int(
                 self.window[key].get()[self.values[key][0]][0]
             )
-
             self.window.close()
             self.window = self._init_window(self.client_form.layout(mode))
             input_keys = ['FANTASIA', 'NOME', 'TELEFONE', 'BAIRRO']
@@ -106,6 +107,7 @@ class MainFrame:
                 'Nova cobrança',
                 'Todos os clientes',
                 'Relatório cobranças',
+                '-CLIENT SEARCH PAGE-'
             ]:
                 match event:
                     case 'Dashboard':
@@ -121,14 +123,17 @@ class MainFrame:
                                            'registrar o boleto.\n')
                             continue
                     case 'Todos os clientes':
-                        layout = self.client_table.layout(
+                        self.client_report.clients_register = \
                             self.client_model.read_all()
-                        )
-                        self.client_table.layout(self.client_model.read_all())
+                        layout = self.client_report.layout()
                     case 'Relatório cobranças':
-                        self.charge_table.tickets = \
+                        self.charge_report.tickets = \
                             self.charge_model.read_all()
-                        layout = self.charge_table.layout()
+                        layout = self.charge_report.layout()
+                    case '-CLIENT SEARCH PAGE-':
+                        self.client_search.clients_register = \
+                            self.client_model.read_all()
+                        layout = self.client_search.layout()
                     case _:
                         raise NameError('layout não definido')
                 self.window.close()
@@ -156,10 +161,20 @@ class MainFrame:
                                          self.values['-INPUT_NOME-'],
                                          self.values['-INPUT_BAIRRO-'],
                                          self.values['-INPUT_TELEFONE-'])
-                self.client_table.clients = self.client_model.read_all()
+                self.client_report.clients = self.client_model.read_all()
                 sg.PopupOK(f'Cliente {self.values["-INPUT_NOME-"]} '
                            'cadastrado com sucesso.')
-                layout = self.client_table.layout(self.client_model.read_all())
+
+                layout = self.client_report.layout()
+                self.window.close()
+                self.window = self._init_window(layout)
+            elif event == '-SELECT CLIENT-':
+                key = '-CLIENT TABLE-'
+                client_id = int(
+                    self.window[key].get()[self.values[key][0]][0]
+                )
+                ticket_list = self.charge_model.read(client_id, list)
+                layout = self.charge_form.layout(ticket_list)
                 self.window.close()
                 self.window = self._init_window(layout)
             elif event == '-HABILITAR_EDICAO-':
@@ -173,9 +188,7 @@ class MainFrame:
                 })
                 sg.Popup('Registro atualizado com sucesso.\n\n')
                 self.window.close()
-                self.window = self._init_window(self.client_table.layout(
-                    self.client_model.read_all()
-                ))
+                self.window = self._init_window(self.client_report.layout())
             elif event == '-EXCLUIR_CLIENTE-':
                 try:
                     key = '-TABELA_CLIENTES-'
@@ -190,8 +203,10 @@ class MainFrame:
                     self.window[key].update(values=clients_register)
                 except IndexError:
                     show_popup('deletar')
+            elif event == '-VALOR-':
+                pass
             else:
-                raise f'evento {event} não encontrado\n\n'
+                sg.Popup(NameError(f'evento {event} não encontrado\n\n'))
 
 
 root = MainFrame()
