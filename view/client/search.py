@@ -20,7 +20,7 @@ class Search(ClientTable, Menu):
                 sg.Input(key='-CLIENT SEARCH BAR-', enable_events=True),
                 sg.Button('Buscar', key='-SEARCH CLIENT-')
             ],
-            [sg.Column(self.table()), sg.vtop(sg.Column(interface))],
+            [sg.Column(self._table()), sg.vtop(sg.Column(interface))],
             [sg.Push(), sg.Button('Voltar',
                                   key='Nova cobrança',
                                   size=button_size)]

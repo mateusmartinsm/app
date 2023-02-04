@@ -17,23 +17,41 @@ class Dashboard(Menu):
         fg.get_tk_widget().pack(side='top', fill='both', expand=1)
         return fg
 
-    def layout(self) -> list[list[sg.Element]]:
+    @staticmethod
+    def button_shape(quantity: str, key: str, color: str) -> sg.Button:
+        return sg.Button(quantity,
+                         key=key,
+                         font=(None, 30),
+                         border_width=0,
+                         button_color=(color, 'lightgrey'),
+                         size=3)
+
+    def layout(self,
+               expired_tickets: int,
+               pending_tickets: int,
+               paid_tickets: int) -> list[list[sg.Element]]:
         return [
             [sg.Menu(self.menu_bar)],
             [
                 sg.Push(),
                 sg.Column([
-                    [sg.Text('4', font=(None, 30), text_color='red')],
+                    [self.button_shape(str(expired_tickets),
+                                       '-COBRANÇAS VENCIDAS-',
+                                       'red')],
                     [sg.Text('Boletos vencidos')]
                 ], element_justification='center'),
                 sg.Push(),
                 sg.Column([
-                    [sg.Text('15', font=(None, 30), text_color='darkorange')],
+                    [self.button_shape(str(pending_tickets),
+                                       'Relatório cobranças',
+                                       'darkorange')],
                     [sg.Text('Boletos abertos')]
                 ], element_justification='center'),
                 sg.Push(),
                 sg.Column([
-                    [sg.Text('30', font=(None, 30), text_color='green')],
+                    [self.button_shape(str(paid_tickets),
+                                       '-COBRANÇAS PAGAS-',
+                                       'green')],
                     [sg.Text('Boletos pagos')]
                 ], element_justification='center'),
                 sg.Push()

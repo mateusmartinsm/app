@@ -60,10 +60,28 @@ class Ticket:
         db.cur.execute('DELETE FROM boletos WHERE id_boleto = ?', (id_boleto,))
 
     @staticmethod
-    def read_all() -> list:
-        query = db.cur.execute('''
-            SELECT nome_fantasia, nome, cnpj FROM clientes
-            UNION
-            SELECT data_de_vencimento, valor, numero FROM boletos
-        ''').fetchall()
-        return list(query[1]) + list(query[0])
+    def read_all(situation: str) -> list:
+        ticket_data = db.cur.execute('''
+                SELECT id_cliente, data_de_vencimento, valor, numero FROM boletos
+                WHERE situacao = ?
+            ''', (situation,)).fetchall()
+        client_ids = [value[0] for value in ticket_data]
+        client_data = []
+        for i in client_ids:
+            db.cur.execute('''
+                    SELECT nome_fantasia, nome, cnpj FROM clientes WHERE id = ?
+                ''', (i,))
+            client_data.append(db.cur.fetchone())
+        registers = []
+        for i, value in enumerate(client_data):
+            list_item = \
+                 list(value) + list(ticket_data[i])[1:]
+            registers.append(list_item)
+        return registers
+
+    @staticmethod
+    def count(situation: str):
+        return db.cur.execute(
+            'SELECT COUNT(1) FROM boletos WHERE situacao = ?',
+            (situation,)
+        ).fetchone()[0]

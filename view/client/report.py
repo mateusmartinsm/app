@@ -20,5 +20,5 @@ class Report(ClientTable, Menu):
 
         return [
             [sg.Menu(self.menu_bar)],
-            [sg.Column(self.table()), sg.vtop(sg.Column(interface))]
+            [sg.Column([[self.table()]]), sg.vtop(sg.Column(interface))]
         ]

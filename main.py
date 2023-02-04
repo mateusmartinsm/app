@@ -6,7 +6,7 @@ import view
 sg.theme('DefaultNoMoreNagging')
 
 
-def show_popup(keyword: str = None, msg=None) -> None:
+def show_popup(keyword: str = None, msg: str = None) -> None:
     if msg is None:
         msg = 'ERRO: Nenhum registro selecionado.\n' \
               f'Por favor, selecione o registro que deseja {keyword}\n'
@@ -32,16 +32,19 @@ class MainFrame:
         self.charge_model = models.Ticket()
         self.charge_form = view.charge.Form()
         self.charge_report = view.charge.Report()
-        self.charge_report.tickets = self.charge_model.read_all()
 
         self.dashboard = view.Dashboard()
+        expired_tickets, pending_tickets, paid_tickets = \
+            tuple([self.charge_model.count(i) for i in ['vencido',
+                                                        'pendente',
+                                                        'pago']])
 
-        self.window = sg.Window(
-            'Gestor de Cobranças',
-            element_padding=7,
-            layout=self.dashboard.layout(),
-            finalize=True,
-        )
+        self.window = sg.Window('Gestor de Cobranças',
+                                element_padding=7,
+                                finalize=True,
+                                layout=self.dashboard.layout(expired_tickets,
+                                                             pending_tickets,
+                                                             paid_tickets))
 
         self.dashboard.draw_figure(
             self.window['-CANVAS-'].TKCanvas,
@@ -107,11 +110,21 @@ class MainFrame:
                 'Nova cobrança',
                 'Todos os clientes',
                 'Relatório cobranças',
+                '-COBRANÇAS VENCIDAS-',
+                '-COBRANÇAS PAGAS-',
                 '-CLIENT SEARCH PAGE-'
             ]:
                 match event:
                     case 'Dashboard':
-                        layout = self.dashboard.layout()
+                        expired_tickets, pending_tickets, paid_tickets = \
+                            tuple([self.charge_model.count(i) for i in [
+                                'vencido',
+                                'pendente',
+                                'pago'
+                            ]])
+                        layout = self.dashboard.layout(expired_tickets,
+                                                       pending_tickets,
+                                                       paid_tickets)
                     case 'Novo cliente':
                         layout = self.client_form.layout()
                     case 'Nova cobrança':
@@ -127,9 +140,19 @@ class MainFrame:
                             self.client_model.read_all()
                         layout = self.client_report.layout()
                     case 'Relatório cobranças':
-                        self.charge_report.tickets = \
-                            self.charge_model.read_all()
-                        layout = self.charge_report.layout()
+                        layout = self.charge_report.layout(
+                            self.charge_model.read_all('pendente')
+                        )
+                    case '-COBRANÇAS VENCIDAS-':
+                        layout = self.charge_report.layout(
+                            self.charge_model.read_all('vencido'),
+                            'vencido'
+                        )
+                    case '-COBRANÇAS PAGAS-':
+                        layout = self.charge_report.layout(
+                            self.charge_model.read_all('pago'),
+                            'pago'
+                        )
                     case '-CLIENT SEARCH PAGE-':
                         self.client_search.clients_register = \
                             self.client_model.read_all()
@@ -203,8 +226,19 @@ class MainFrame:
                     self.window[key].update(values=clients_register)
                 except IndexError:
                     show_popup('deletar')
-            elif event == '-VALOR-':
-                pass
+            elif event == '-COMBO SITUATION-':
+                situation = self.values['-COMBO SITUATION-']
+                try:
+                    new_table_values = self.charge_model.read_all(situation)
+                    self.window['-TICKET_TABLE-'].update(
+                        new_table_values,
+                        row_colors=[  # row_colors é resetado no update
+                            (i, 'white' if i % 2 == 0 else 'lightgray')
+                            for i in range(len(new_table_values))
+                        ]
+                    )
+                except IndexError:
+                    show_popup(msg=f'Sem boletos {situation}s')
             else:
                 sg.Popup(NameError(f'evento {event} não encontrado\n\n'))
 
